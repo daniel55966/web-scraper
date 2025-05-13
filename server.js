@@ -1,7 +1,7 @@
 import express from "express";
-import { chromium } from "playwright";
+import { chromium, firefox } from "playwright";
 import cors from "cors";
-import { scrapeListings } from "./utils/scraper.js";
+import { scrapeListings } from "./src/utils/scraper.js";
 
 const app = express();
 const PORT = 5001;
@@ -10,8 +10,15 @@ app.use(cors());
 
 app.get("/scrape", async (req, res) => {
   let browser;
+  const { browserType } = req.query;  // Get browser type from query (either 'chromium' or 'firefox')
+
   try {
-    browser = await chromium.launch();
+    if (browserType === "firefox") {
+      browser = await firefox.launch();  // Launch Firefox
+    } else {
+      browser = await chromium.launch();  // Default to Chromium
+    }
+
     const listings = await scrapeListings({ browser, retryCount: 3 });
     res.json(listings);
   } catch (error) {
